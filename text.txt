@@ -1,0 +1,124 @@
+let video; // access the cam
+
+let bodyPose; //holds the body pose;
+
+let handPose;
+
+let connections; //to connects the dots
+
+let poses = []; //storing the results data
+
+let hands = []; 
+
+function preload(){
+  bodyPose = ml5.bodyPose("MoveNet" ,{flipped: true}) // loads the body pose form the server
+  handPose = ml5.handPose({flipped: true});
+}
+
+function gotPoses(results){
+  poses = results;  
+}
+
+function gotHands(results){
+  hands = results;  
+}
+
+function mousePressed(){
+  console.log(hands)
+}
+
+function setup(){
+  createCanvas(650, 480); 
+  video = createCapture(VIDEO, {flipped: true});
+  video.size(650, 480);
+  video.hide();
+  
+  handPose.detectStart(video, gotHands);
+  bodyPose.detectStart(video, gotPoses); //detect the live image from the cam contineously 
+  // two variables video to get data and gotPose to get back the results
+  connections = bodyPose.getSkeleton();
+  
+}
+
+function draw(){
+  image(video, 0, 0);
+
+//hands
+//   for(let i = 0; i < hands.length; i++){
+//     let hand = hands[i];
+//     for(let i = 0; i < hand.keypoints.length; i++){
+//         let keypoint = hand.keypoints[i];
+//         fill(255,0,255);
+//         noStroke();
+//         circle(keypoint.x, keypoint.y, 10);
+//     }
+
+//   }
+    if (hands.length > 0) {
+      let hand = hands[0];
+      let index = hand.index_finger_tip;
+      let thumb = hand.thumb_ip;
+      let pinky = hand.pinky_finger_dip;
+      let middle = hand.middle_finger_dip;
+      let ring = hand.ring_finger_mcp;
+      let wrist = hand.wrist;
+
+// Normalize distances
+      // let thumbRef = dist(wrist.x, wrist.y, thumb.x, thumb.y);
+      // let pinkyRef = dist(wrist.x, wrist.y, pinky.x, pinky.y);// Reference distance
+      // let final = (thumbRef + pinkyRef) / 2;
+//     let d = dist(index.x, index.y, thumb.x, thumb.y, middle.x, middle.y, pinky.x, pinky.y, ring.x, ring.y ) / handSize;
+
+//     console.log(d);  // This is now a normalized value
+  
+
+     // detectHandSign(d); 
+      let firstAngle = calculateAngle(
+      thumb.x, thumb.y,
+      index.x, index.y,
+      pinky.x, pinky.y
+    );
+      let secondAngle = calculateAngle(
+      ring.x, ring.y,
+      middle.x, middle.y,
+      pinky.x, pinky.y
+    );
+      let total = ((firstAngle + secondAngle) / 10) ;
+      fill(255, 0, 0);
+      console.log("Total", total);
+      detectHandPose(total);
+  // Draw circles
+      circle(index.x, index.y, 10);
+      circle(thumb.x, thumb.y, 10);
+      circle(middle.x, middle.y, 10);
+      circle(ring.x, ring.y, 10);
+      circle(pinky.x, pinky.y, 10);
+}
+}
+
+function calculateAngle(x1, y1, x2, y2, x3, y3) {
+  let v1 = { x: x2 - x1, y: y2 - y1 }; // Vector 1 (from joint 1 to joint 2)
+  let v2 = { x: x3 - x2, y: y3 - y2 }; // Vector 2 (from joint 2 to joint 3)
+
+  let dotProduct = v1.x * v2.x + v1.y * v2.y; // Dot product
+  let magV1 = Math.sqrt(v1.x ** 2 + v1.y ** 2); // Magnitude of vector 1
+  let magV2 = Math.sqrt(v2.x ** 2 + v2.y ** 2); // Magnitude of vector 2
+
+  let angle = Math.acos(dotProduct / (magV1 * magV2)); // Angle in radians
+  return angle * (180 / Math.PI); // Convert to degrees
+}
+
+//Calculate angle between thumb, index finger, and middle finger
+function detectHandPose(a){
+  if(a >= 16 && a <= 18.2){
+    console.log("A");
+  } else if(a >= 27 && a <= 28.3){
+    console.log("B");
+  } else if( a > 158 && a < 163){
+    console.log("D");
+  } else if( a > 1.3 && a < 8.9){
+    console.log("F");
+  }
+  
+  
+}
