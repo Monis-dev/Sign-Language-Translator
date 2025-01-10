@@ -1,27 +1,27 @@
 let video; // access the cam
 
-let bodyPose; //holds the body pose;
-
 let handPose;
 
 let connections; //to connects the dots
 
-let poses = []; //storing the results data
-
 let hands = []; 
 
-let painting;
+let stack = [];
 
-let px = 0;
-let py = 0;
+const Myname = 'Monis';
 
-function preload(){
-  bodyPose = ml5.bodyPose("MoveNet" ,{flipped: true}) // loads the body pose form the server
-  handPose = ml5.handPose({flipped: true});
+const custome = 'Model Project'
+
+let lerpedPosition = {
+  thumb: {x:0, y:0},
+  index: {x:0, y:0},
+  middle: {x:0, y:0},
+  ring: {x:0, y:0},
+  pinky: {x:0, y:0},
 }
 
-function gotPoses(results){
-  poses = results;  
+function preload(){
+  handPose = ml5.handPose({flipped: true});
 }
 
 function gotHands(results){
@@ -34,47 +34,19 @@ function mousePressed(){
 
 function setup(){
   createCanvas(650, 480); 
-  painting = createGraphics(650, 480);
-  painting.clear();
   video = createCapture(VIDEO, {flipped: true});
   video.size(650, 480);
   video.hide();
   
   handPose.detectStart(video, gotHands);
-  bodyPose.detectStart(video, gotPoses); //detect the live image from the cam contineously 
-  // two variables video to get data and gotPose to get back the results
-  connections = bodyPose.getSkeleton();
-  
 }
 
+      
 
 function draw(){
   image(video, 0, 0);
 
-//   if(poses.length > 0){
-//     let pose = poses[0]; //drawing circle on nose with has an index of 0
-//     for(let i = 0; i < pose.keypoints.length; i++){  
-//       let keypoints = pose.keypoints[i];
-//       fill(0, 255, 0);
-//       noStroke();
-//       if(keypoints.confidence > 0.1){  
-//         circle(keypoints.x, keypoints.y, 10); 
-//         for(let j = 0; j < connections.length; j++){
-//           let connection = connections[j];
-//           let a = connection[0];
-//           let b = connection[1];
-//           let keyPointA = pose.keypoints[a];
-//           let keyPointB = pose.keypoints[b];
-//           if(keyPointA.confidence > 0.1 && keyPointB.confidence > 0.1){
-//           stroke(0, 0, 255);
-//           strokeWeight(5);
-//           line(keyPointA.x, keyPointA.y, keyPointB.x, keyPointB.y)
-//         }
-//         }
-        
-//       }
-//     }
-    //hands
+//hands
 //   for(let i = 0; i < hands.length; i++){
 //     let hand = hands[i];
 //     for(let i = 0; i < hand.keypoints.length; i++){
@@ -85,44 +57,205 @@ function draw(){
 //     }
 
 //   }
-    if(hands.length > 0){
-      let hand = hands[0];
+  if (hands.length > 0) {
+    let hand = hands[0]
+    let index = hand.index_finger_tip;
+    let thumb = hand.thumb_ip;
+    let pinky = hand.pinky_finger_dip;
+    let middle = hand.middle_finger_dip;
+    let ring = hand.ring_finger_mcp;
+    let wrist = hand.wrist;
+      
+    
+      
+
+    lerpedPosition.index= calculateLarp(lerpedPosition.index, index.x,index.y);
+    lerpedPosition.thumb= calculateLarp(lerpedPosition.thumb, thumb.x,thumb.y);
+    lerpedPosition.middle= calculateLarp(lerpedPosition.middle, middle.x,middle.y);
+    lerpedPosition.ring= calculateLarp(lerpedPosition.ring, ring.x,ring.y);
+    lerpedPosition.pinky= calculateLarp(lerpedPosition.pinky, pinky.x,pinky.y);
+      
+
+      
+
+      let firstAngle = calculateAngle(
+      lerpedPosition.thumb.x,lerpedPosition.thumb.y,
+      lerpedPosition.index.x,lerpedPosition.index.y,
+      lerpedPosition.pinky.x,lerpedPosition.pinky.y
+    );
+      let secondAngle = calculateAngle(
+      lerpedPosition.ring.x,lerpedPosition.ring.y,
+      lerpedPosition.middle.x,lerpedPosition.middle.y,
+      lerpedPosition.pinky.x,lerpedPosition.pinky.y
+    );
+      let total = ((firstAngle + secondAngle) / 10) ;
+      fill(255, 0, 0);
+      console.log("Total", total);
+      detectHandPose(total);
+  // Draw circles
+      circle(lerpedPosition.index.x, lerpedPosition.index.y, 10);
+      circle(lerpedPosition.thumb.x, lerpedPosition.thumb.y, 10);
+      circle(lerpedPosition.middle.x, lerpedPosition.middle.y, 10);
+      circle(lerpedPosition.ring.x, lerpedPosition.ring.y, 10);
+      circle(lerpedPosition.pinky.x, lerpedPosition.pinky.y, 10);
+      circle(wrist.x, wrist.y, 10);
+}
+}
+
+//Calculate angle between thumb, index finger, and middle finger
+function detectHandPose(a){
+   let hand = hands[0]
       let index = hand.index_finger_tip;
-      let thumb = hand.thumb_tip;
-      let x = (index.x + thumb.x) * 0.5;
-      let y = (index.y + thumb.y) * 0.5;
-      
-      let d = dist(index.x, index.y, thumb.x, thumb.y );
-      
-      if( d < 30){
-        painting.stroke(0,255,0);
-        painting.strokeWeight(8);
-        painting.line(px, py, x, y);
-      }
-       px = x;
-      py = y; 
+      let thumb = hand.thumb_ip;
+      let thumbT = hand.thumb_tip;
+      let pinky = hand.pinky_finger_dip;
+      let middle = hand.middle_finger_dip;
+      let ring = hand.ring_finger_mcp;
+      let middleT = hand.middle_finger_tip;
+      let wrist = hand.wrist;
+
+  if(hand.handedness == 'Left'){
+    if(a >= 22.5 && a < 24.5 && index.x < wrist.x){
+      console.log("Hello");
+      checkText("Hello");
+    } else if(a > 21.5 && a < 23.5 && index.x > thumb.x && index.y > thumbT.y && thumb.y < ring.y){
+      console.log("I am");
+      checkText("I am");
+    } else if (a > 23.5 && a < 24.5 && wrist.y < index.y && wrist.y < ring.y && pinky.y < index.y && index.y < middleT.y) {
+      console.log(Myname);
+      checkText(Myname);
+    } else if (a > 27.5 && a < 29.8 && wrist.y < index.y && middleT.y < thumbT.y && thumbT.x < index.x ) {
+      console.log("This is");
+      checkText("This is");
+    } else if (a > 23.5 && a < 25.8 && wrist.x < ring.x && wrist.x < pinky.x && thumb.x < ring.x) {
+      console.log("My");
+      checkText("My");
+    } else if (a > 30.5 && a < 33.8 && thumbT.x < index.x && thumbT.x < middle.x && index.y > middle.y) {
+      console.log("M");
+      checkText("M");
+    } else if (a > 25.5 && a < 26.8 && index.y < middleT.y && index.y < middle.y && middle.y > ring.y && pinky.y > ring.y && index.x < thumb.x && middleT.y > pinky.y) {
+      console.log("L");
+      checkText("L");
+    } else if (a > 32.5 && a < 35.5 && thumb.x < index.x && thumbT.x < middle.x && thumbT.x < index.x && pinky.y < thumb.y) {
+      console.log(custome);
+      checkText(custome);
     }
- image(painting, 0, 0);
-
-  //Make size of a circle bigger with hands distance
-    // let rx = pose.right_wrist.x;
-    // let ry = pose.right_wrist.y;
-
-    // let lx = pose.left_wrist.x;
-    // let ly = pose.left_wrist.y;
-
-    //  fill(0,0,255);
-    // circle(rx,ry,10);
-    
-    
-    //  fill(0,255, 0);
-    // circle(lx,ly,10);
-    
-    // let d = dist(rx,ry,lx,ly);
-    
-    // fill(255, 0, 0);
-    // circle(x, y, d); //change of size of nose depending on the distance between the two writ pts.
-
-  //}
+  }
+  
+  if(hand.handedness == 'Right'){
+    if(a > 23.5 && a < 24.5 && index.x > wrist.x){
+      console.log("Hello");
+      checkText("Hello");
+    } else if(a > 22.5 && a < 24.5 && index.x < thumb.x && index.y > thumbT.y && thumbT.y < ring.y){
+      console.log("I am");
+      checkText("I am");
+    } else if (a > 25.5 && a < 27.1 && wrist.y < index.y && wrist.y < ring.y && pinky.y < index.y && index.y < middleT.y) {
+      console.log(Myname);
+      checkText(Myname);
+    } else if (a > 27.5 && a < 29.8 && wrist.y < index.y && middleT.y < thumbT.y && thumbT.x > index.x && index.y < thumbT.y ) {
+      console.log("This is");
+      checkText("This is");
+    } else if (a > 23.5 && a < 25.8 && wrist.x > ring.x ) {
+      console.log("My");
+      checkText("My");
+    }
+  }
   
 }
+
+
+
+// function detectHandPose(a){
+//    let hand = hands[0]
+//       let index = hand.index_finger_tip;
+//       let thumb = hand.thumb_ip;
+//       let thumbT = hand.thumb_tip;
+//       let pinky = hand.pinky_finger_dip;
+//       let middle = hand.middle_finger_dip;
+//       let ring = hand.ring_finger_mcp;
+//       let middleT = hand.middle_finger_tip;
+      
+//   if(a >= 18.9 && a < 22 && index.y > thumb.y && pinky.y > ring.y){
+//     console.log("A");
+    
+//     checkText("A");
+//   } else if(a >= 27 && a <= 29.2 && middle.x > thumb.x && pinky.y < thumb.y){
+//     console.log("B");
+    
+//     checkText("B");
+//   // } else if( a >= 26.5 && a <= 27.6 && index.x < thumb.x ){
+//   //   console.log("C");
+//   } else if( a >= 31.5 && a <= 33.1 && middleT.y > index.y && middleT.x < index.x){
+//     console.log("D");
+    
+//     checkText("D");
+//   // } else if( a >= 25 && a <= 26.4 ){
+//   //   console.log("E");
+//   } else if( a >= 14.3 && a <= 17.2 && middle.y < index.y &&  pinky.y < index.y && ring.y > middle.y){
+//     console.log("F");
+    
+//     checkText("F");
+//   } else if( a >= 25 && a <= 26.4 && index.x < thumb.x ){
+//     console.log("G");
+    
+//     checkText("G");
+//   } else if( a >= 33.5 && a <= 34.5 && index.x < thumb.x && middle.x < thumb.x){
+//     console.log("H");
+    
+//     checkText("H");
+//   }
+  
+// }
+
+function calculateLarp(lerpedPos,x, y)
+{
+    lerpedPos.x = lerp(lerpedPos.x, x, 0.3);
+    lerpedPos.y = lerp(lerpedPos.y, y, 0.3);
+  return lerpedPos;
+} 
+
+
+function calculateAngle(x1, y1, x2, y2, x3, y3) {
+  let v1 = { x: x2 - x1, y: y2 - y1 }; // Vector 1 (from joint 1 to joint 2)
+  let v2 = { x: x3 - x2, y: y3 - y2 }; // Vector 2 (from joint 2 to joint 3)
+
+  let dotProduct = v1.x * v2.x + v1.y * v2.y; // Dot product
+  let magV1 = Math.sqrt(v1.x ** 2 + v1.y ** 2); // Magnitude of vector 1
+  let magV2 = Math.sqrt(v2.x ** 2 + v2.y ** 2); // Magnitude of vector 2
+
+  let angle = Math.acos(dotProduct / (magV1 * magV2)); // Angle in radians
+  return angle * (180 / Math.PI); // Convert to degrees
+}
+
+function displayText(a){
+  let ulElement = document.querySelector("ul");
+  
+  let liElement = document.createElement("li");
+  
+  liElement.innerHTML = a;
+  
+  ulElement.appendChild(liElement);
+}
+
+function peek() {
+  return stack[stack.length - 1];
+}
+
+function push(item) {
+  stack.push(item);
+}
+
+function checkText(Text){
+  let checkValue = peek();
+  if(checkValue != Text){
+    stack.push(Text);
+    displayText(Text);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  
+  itemsToAdd.forEach(item => {
+      displayText(item); // Call function to display each item
+  });
+});

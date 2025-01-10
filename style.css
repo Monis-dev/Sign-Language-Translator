@@ -3,8 +3,34 @@ html, body {
   padding: 0;
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 canvas {
   display: block;
+}
+
+.list_container {
+  margin: 20px;
+  max-width: 50%;
+  border: 2px solid rgb(173, 236, 173);
+  border-radius: 1.4rem; /* Adds some spacing around the list container */
+}
+
+.list_holder {
+  display: flex;              /* Use Flexbox layout */
+  flex-wrap: wrap;           /* Allow items to wrap to the next line */
+  list-style-type: none;     /* Remove default bullets */
+  padding: 0;                /* Remove default padding */
+  margin: 0;  
+  font-size: 1.5rem;               /* Remove default margin */
+}
+
+.list_holder li {
+  margin: 10px;              /* Space between list items */
+  padding: 10px;             /* Padding inside each item */
+  border: 1px solid #ccc;    /* Optional: Add a border */
+  background: #bcfba6;       /* Optional: Background color */
+  min-width: 100px;          /* Minimum width for each item */
+  text-align: center;        /* Center align text within items */
 }
