@@ -4,12 +4,14 @@ let handPose;
 
 let connections; //to connects the dots
 
-let connectionsH;
 let hands = []; 
 
+let stack = [];
 
-let bodyPose;
-let poses = [];
+const Myname = 'Monis';
+
+const custome = 'Model Project'
+
 let lerpedPosition = {
   thumb: {x:0, y:0},
   index: {x:0, y:0},
@@ -20,14 +22,10 @@ let lerpedPosition = {
 
 function preload(){
   handPose = ml5.handPose({flipped: true});
-  bodyPose = ml5.bodyPose("MoveNet" ,{flipped: true}) 
 }
 
 function gotHands(results){
   hands = results;  
-}
-function gotPoses(results){
-  poses = results;  
 }
 
 function mousePressed(){
@@ -40,88 +38,41 @@ function setup(){
   video.size(650, 480);
   video.hide();
   
-  bodyPose.detectStart(video, gotPoses);
-  
   handPose.detectStart(video, gotHands);
-  
-  connectionsH = handPose.getConnections();
-  connections = bodyPose.getSkeleton();
 }
 
       
 
 function draw(){
   image(video, 0, 0);
-  
-    if(poses.length > 0){
-    let pose = poses[0]; //drawing circle on nose with has an index of 0
-    for(let i = 0; i < pose.keypoints.length; i++){  
-      let keypoints = pose.keypoints[i];
-      fill(0, 255, 0);
-      noStroke();
-      if(keypoints.confidence > 0.1){  
-        circle(keypoints.x, keypoints.y, 10); 
-        for(let j = 0; j < connections.length; j++){
-          let connection = connections[j];
-          let a = connection[0];
-          let b = connection[1];
-          let keyPointA = pose.keypoints[a];
-          let keyPointB = pose.keypoints[b];
-          if(keyPointA.confidence > 0.1 && keyPointB.confidence > 0.1){
-          stroke(0, 0, 255);
-          strokeWeight(5);
-          line(keyPointA.x, keyPointA.y, keyPointB.x, keyPointB.y)
-        }
-        }
-        
-      }
-    }
-    }
 
-// hands
-  for(let i = 0; i < hands.length; i++){
-    let hand = hands[i];
-    for(let i = 0; i < hand.keypoints.length; i++){
-        let keypoint = hand.keypoints[i];
-        
-      for(let j = 0; j < connectionsH.length; j++){
-          let connectionH = connectionsH[j];
-          let a = connectionH[0];
-          let b = connectionH[1];
-          let keyPointA = hand.keypoints[a];
-          let keyPointB = hand.keypoints[b];
-          
-          stroke(255,0,255);
-          strokeWeight(2);
-          line(keyPointA.x, keyPointA.y, keyPointB.x, keyPointB.y)
-        
-      }fill(255,255,255);
-        noStroke();
-        circle(keypoint.x, keypoint.y, 10);
+//hands
+//   for(let i = 0; i < hands.length; i++){
+//     let hand = hands[i];
+//     for(let i = 0; i < hand.keypoints.length; i++){
+//         let keypoint = hand.keypoints[i];
+//         fill(255,0,255);
+//         noStroke();
+//         circle(keypoint.x, keypoint.y, 10);
+//     }
 
-    }
-  }
-    if (hands.length > 0) {
-      let hand = hands[0]
-      let index = hand.index_finger_tip;
-      let thumb = hand.thumb_ip;
-      let pinky = hand.pinky_finger_dip;
-      let middle = hand.middle_finger_dip;
-      let ring = hand.ring_finger_mcp;
-      let wrist = hand.wrist;
+//   }
+  if (hands.length > 0) {
+    let hand = hands[0]
+    let index = hand.index_finger_tip;
+    let thumb = hand.thumb_ip;
+    let pinky = hand.pinky_finger_dip;
+    let middle = hand.middle_finger_dip;
+    let ring = hand.ring_finger_mcp;
+    let wrist = hand.wrist;
       
     
-      
-
       lerpedPosition.index= calculateLarp(lerpedPosition.index, index.x,index.y);
       lerpedPosition.thumb= calculateLarp(lerpedPosition.thumb, thumb.x,thumb.y);
       lerpedPosition.middle= calculateLarp(lerpedPosition.middle, middle.x,middle.y);
       lerpedPosition.ring= calculateLarp(lerpedPosition.ring, ring.x,ring.y);
       lerpedPosition.pinky= calculateLarp(lerpedPosition.pinky, pinky.x,pinky.y);
       
-
-      
-
       let firstAngle = calculateAngle(
       lerpedPosition.thumb.x,lerpedPosition.thumb.y,
       lerpedPosition.index.x,lerpedPosition.index.y,
@@ -133,17 +84,19 @@ function draw(){
       lerpedPosition.pinky.x,lerpedPosition.pinky.y
     );
       let total = ((firstAngle + secondAngle) / 10) ;
-      fill(0, 0, 0);
+      fill(255, 0, 0);
       console.log("Total", total);
       detectHandPose(total);
   // Draw circles
-      // circle(lerpedPosition.index.x, lerpedPosition.index.y, 10);
-      // circle(lerpedPosition.thumb.x, lerpedPosition.thumb.y, 10);
-      // circle(lerpedPosition.middle.x, lerpedPosition.middle.y, 10);
-      // circle(lerpedPosition.ring.x, lerpedPosition.ring.y, 10);
-      // circle(lerpedPosition.pinky.x, lerpedPosition.pinky.y, 10);
-      // circle(wrist.x, wrist.y, 10);
-        }
+
+      circle(lerpedPosition.index.x, lerpedPosition.index.y, 10);
+      circle(lerpedPosition.thumb.x, lerpedPosition.thumb.y, 10);
+      circle(lerpedPosition.middle.x, lerpedPosition.middle.y, 10);
+      circle(lerpedPosition.ring.x, lerpedPosition.ring.y, 10);
+      circle(lerpedPosition.pinky.x, lerpedPosition.pinky.y, 10);
+      circle(wrist.x, wrist.y, 10);
+      
+  }
 }
 
 //Calculate angle between thumb, index finger, and middle finger
@@ -156,30 +109,131 @@ function detectHandPose(a){
       let middle = hand.middle_finger_dip;
       let ring = hand.ring_finger_mcp;
       let middleT = hand.middle_finger_tip;
-      
-  if(a >= 18.9 && a < 22 && index.y > thumb.y && pinky.y > ring.y){
-    console.log("A");
-    
-  } else if(a >= 27 && a <= 29.2 && middle.x > thumb.x && pinky.y < thumb.y){
-    console.log("B");
-    document.querySelector("h1").innerHTML = "Hello"
-  // } else if( a >= 26.5 && a <= 27.6 && index.x < thumb.x ){
-  //   console.log("C");
-  } else if( a >= 31.5 && a <= 33.1 && middleT.y > index.y && middleT.x < index.x){
-    console.log("D");
-  // } else if( a >= 25 && a <= 26.4 ){
-  //   console.log("E");
-  } else if( a >= 14.3 && a <= 17.2 && middle.y < index.y &&  pinky.y < index.y && ring.y > middle.y){
-    console.log("F");
-  } else if( a >= 25 && a <= 26.4 && index.x < thumb.x ){
-    console.log("G");
-  } else if( a >= 33.5 && a <= 34.5 && index.x < thumb.x && middle.x < thumb.x){
-    console.log("H");
+      let wrist = hand.wrist;
+
+  if(hand.handedness == 'Left'){
+    if(a >= 22.5 && a < 24.5 && index.x < wrist.x){
+      console.log("Hello");
+      checkText("Hello");
+    } else if(a > 21.5 && a < 23.5 && index.x > thumb.x && index.y > thumbT.y && thumb.y < ring.y){
+      console.log("I am");
+      checkText("I am");
+    } else if (a > 23.5 && a < 24.5 && wrist.y < index.y && wrist.y < ring.y && pinky.y < index.y && index.y < middleT.y) {
+      console.log(Myname);
+      checkText(Myname);
+    } else if (a > 27.5 && a < 29.8 && wrist.y < index.y && middleT.y < thumbT.y && thumbT.x < index.x ) {
+      console.log("This is");
+      checkText("This is");
+    } else if (a > 23.5 && a < 25.8 && wrist.x < ring.x && wrist.x < pinky.x && thumb.x < ring.x) {
+      console.log("My");
+      checkText("My");
+    } else if (a > 30.5 && a < 33.8 && thumbT.x < index.x && thumbT.x < middle.x && index.y > middle.y) {
+      console.log("M");
+      checkText("M");
+    } else if (a > 26.5 && a < 28.8 && index.y < middleT.y && index.y < middle.y && middle.y > ring.y && pinky.y > ring.y && index.x < thumb.x && middleT.y > pinky.y) {
+      console.log("L");
+      checkText("L");
+    } else if (a > 32.5 && a < 35.5 && thumb.x < index.x && thumbT.x < middle.x && thumbT.x < index.x && pinky.y < thumb.y) {
+      console.log(custome);
+      checkText(custome);
+    }
+
+    //ASL Letters
+  //   if(a >= 18.9 && a < 22 && index.y > thumb.y && pinky.y > ring.y){
+  //       console.log("A");
+          
+  //       checkText("A");
+  //   } else if(a >= 27 && a <= 29.2 && middle.x > thumb.x && pinky.y < thumb.y){
+  //       console.log("B");
+          
+  //       checkText("B");
+  //   // } else if( a >= 26.5 && a <= 27.6 && index.x < thumb.x ){
+  //   //   console.log("C");
+  //   } else if( a >= 31.5 && a <= 33.1 && middleT.y > index.y && middleT.x < index.x){
+  //        console.log("D");
+          
+  //       checkText("D");
+  //   // } else if( a >= 25 && a <= 26.4 ){
+  //   //   console.log("E");
+  //   } else if( a >= 14.3 && a <= 17.2 && middle.y < index.y &&  pinky.y < index.y && ring.y > middle.y){
+  //        console.log("F");
+          
+  //       checkText("F");
+  //  } else if( a >= 25 && a <= 26.4 && index.x < thumb.x ){
+  //       console.log("G");
+          
+  //       checkText("G");
+  //   } else if( a >= 33.5 && a <= 34.5 && index.x < thumb.x && middle.x < thumb.x){
+  //       console.log("H");
+          
+  //       checkText("H");
+  //   }
   }
   
+  if(hand.handedness == 'Right'){
+    if(a > 23.5 && a < 24.5 && index.x > wrist.x){
+      console.log("Hello");
+      checkText("Hello");
+    } else if(a > 22.5 && a < 24.5 && index.x < thumb.x && index.y > thumbT.y && thumbT.y < ring.y){
+      console.log("I am");
+      checkText("I am");
+    } else if (a > 25.5 && a < 27.1 && wrist.y < index.y && wrist.y < ring.y && pinky.y < index.y && index.y < middleT.y) {
+      console.log(Myname);
+      checkText(Myname);
+    } else if (a > 27.5 && a < 29.8 && wrist.y < index.y && middleT.y < thumbT.y && thumbT.x > index.x && index.y < thumbT.y ) {
+      console.log("This is");
+      checkText("This is");
+    } else if (a > 23.5 && a < 25.8 && wrist.x > ring.x ) {
+      console.log("My");
+      checkText("My");
+    }
+  }
+
 }
 
 
+
+// function detectHandPose(a){
+//    let hand = hands[0]
+//       let index = hand.index_finger_tip;
+//       let thumb = hand.thumb_ip;
+//       let thumbT = hand.thumb_tip;
+//       let pinky = hand.pinky_finger_dip;
+//       let middle = hand.middle_finger_dip;
+//       let ring = hand.ring_finger_mcp;
+//       let middleT = hand.middle_finger_tip;
+      
+//   if(a >= 18.9 && a < 22 && index.y > thumb.y && pinky.y > ring.y){
+//     console.log("A");
+    
+//     checkText("A");
+//   } else if(a >= 27 && a <= 29.2 && middle.x > thumb.x && pinky.y < thumb.y){
+//     console.log("B");
+    
+//     checkText("B");
+//   // } else if( a >= 26.5 && a <= 27.6 && index.x < thumb.x ){
+//   //   console.log("C");
+//   } else if( a >= 31.5 && a <= 33.1 && middleT.y > index.y && middleT.x < index.x){
+//     console.log("D");
+    
+//     checkText("D");
+//   // } else if( a >= 25 && a <= 26.4 ){
+//   //   console.log("E");
+//   } else if( a >= 14.3 && a <= 17.2 && middle.y < index.y &&  pinky.y < index.y && ring.y > middle.y){
+//     console.log("F");
+    
+//     checkText("F");
+//   } else if( a >= 25 && a <= 26.4 && index.x < thumb.x ){
+//     console.log("G");
+    
+//     checkText("G");
+//   } else if( a >= 33.5 && a <= 34.5 && index.x < thumb.x && middle.x < thumb.x){
+//     console.log("H");
+    
+//     checkText("H");
+//   }
+  
+// }
 
 function calculateLarp(lerpedPos,x, y)
 {
@@ -200,3 +254,36 @@ function calculateAngle(x1, y1, x2, y2, x3, y3) {
   let angle = Math.acos(dotProduct / (magV1 * magV2)); // Angle in radians
   return angle * (180 / Math.PI); // Convert to degrees
 }
+
+function displayText(a){
+  let ulElement = document.querySelector("ul");
+  
+  let liElement = document.createElement("li");
+  
+  liElement.innerHTML = a;
+  
+  ulElement.appendChild(liElement);
+}
+
+function peek() {
+  return stack[stack.length - 1];
+}
+
+function push(item) {
+  stack.push(item);
+}
+
+function checkText(Text){
+  let checkValue = peek();
+  if(checkValue != Text){
+    stack.push(Text);
+    displayText(Text);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  
+  itemsToAdd.forEach(item => {
+      displayText(item); // Call function to display each item
+  });
+});
