@@ -2,35 +2,91 @@ html, body {
   margin: 0;
   padding: 0;
   display: flex;
-  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+body {
+  display: grid;
+  grid-template-columns: 2fr 2fr;
+  grid-template-rows: 2fr 1fr;
   align-items: center;
+  background: linear-gradient(to top left, #80FFDB, #5390D9);
 }
 
 canvas {
   display: block;
+  border: 2px solid rgb(68, 68, 68);
+  border-radius: 1.4rem;
+  margin-top: 15%;
+  margin-left: 10%;
 }
 
+.blur-background {
+  position: absolute; /* Layer it behind the grid content */
+  top: 10%;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  padding: 15%;
+  background: rgba(255, 255, 255, 0.4); /* Transparent background */
+  backdrop-filter: blur(15px); /* Shared blur effect */
+  -webkit-backdrop-filter: blur(15px); /* Safari compatibility */
+  z-index: -1; /* Ensures it stays behind the grid system */
+  pointer-events: none; /* Ensures it doesn’t block interactions */
+}
+
+/*
+#defaultCanvas0 {
+  position: absolute;
+  margin-right: 0%;
+}
+*/
+
 .list_container {
-  margin: 20px;
-  max-width: 50%;
-  border: 2px solid rgb(173, 236, 173);
-  border-radius: 1.4rem; /* Adds some spacing around the list container */
+  width: 90%;
+  height: 80%;
+  max-height: 75%;
+  border: 2px solid rgb(68, 68, 68);
+  border-radius: 1.4rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-top: 15%;
+  margin-left: 10%;
 }
 
 .list_holder {
-  display: flex;              /* Use Flexbox layout */
-  flex-wrap: wrap;           /* Allow items to wrap to the next line */
-  list-style-type: none;     /* Remove default bullets */
-  padding: 0;                /* Remove default padding */
-  margin: 0;  
-  font-size: 1.5rem;               /* Remove default margin */
+  display: flex;
+  flex-wrap: wrap;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  font-size: 1.5rem;
 }
 
 .list_holder li {
-  margin: 10px;              /* Space between list items */
-  padding: 10px;             /* Padding inside each item */
-  border: 1px solid #ccc;    /* Optional: Add a border */
-  background: #bcfba6;       /* Optional: Background color */
-  min-width: 100px;          /* Minimum width for each item */
-  text-align: center;        /* Center align text within items */
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  background: #8efdff;
+  min-width: 50px;
+  text-align: center;
+  border-radius: 1.4rem;
+}
+
+nav {
+  width: 100%; /* Occupies full width of the container */
+  padding: 10px 20px; /* Add padding around the nav items */
+  position: absolute; /* Prevents it from affecting grid layout */
+  top: 0; /* Fixes it to the top */
+  left: 0;
+}
+
+footer{
+  position: absolute;
+  bottom: 0%;
+  right: 2%;
+  font-size: 1.5rem;
+  font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
