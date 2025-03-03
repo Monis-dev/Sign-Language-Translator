@@ -129,7 +129,4 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-.draw.txt
-.final.txt
-.new.txt
-.BlockDiagram.png
+data/*.txt
